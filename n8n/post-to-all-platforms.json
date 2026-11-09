@@ -1,0 +1,58 @@
+{
+  "name": "SocialSpot - Post video to all platforms",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Post to all platforms",
+        "formDescription": "Upload one portrait video and a caption. It goes to TikTok, Instagram, Facebook and YouTube together.",
+        "formFields": {
+          "values": [
+            { "fieldLabel": "Video", "fieldType": "file", "multipleFiles": false, "acceptFileTypes": ".mp4,.mov", "requiredField": true },
+            { "fieldLabel": "Caption", "fieldType": "textarea", "requiredField": true },
+            { "fieldLabel": "YouTube title", "placeholder": "Optional - max 100 letters" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a1f0c6c2-1111-4c1a-9a01-000000000001",
+      "name": "Upload form",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [0, 0],
+      "webhookId": "socialspot-post-form"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.upload-post.com/api/upload",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            { "parameterType": "formBinaryData", "name": "video", "inputDataFieldName": "Video" },
+            { "name": "user", "value": "mrjayofficials" },
+            { "name": "platform[]", "value": "tiktok" },
+            { "name": "platform[]", "value": "instagram" },
+            { "name": "platform[]", "value": "facebook" },
+            { "name": "platform[]", "value": "youtube" },
+            { "name": "title", "value": "={{ $json.Caption }}" },
+            { "name": "youtube_title", "value": "={{ $json['YouTube title'] || $json.Caption.split('\\n')[0].slice(0, 100) }}" },
+            { "name": "youtube_description", "value": "={{ $json.Caption }}" }
+          ]
+        },
+        "options": { "timeout": 600000 }
+      },
+      "id": "a1f0c6c2-1111-4c1a-9a01-000000000002",
+      "name": "Send to Upload-Post",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [320, 0]
+    }
+  ],
+  "connections": {
+    "Upload form": { "main": [[{ "node": "Send to Upload-Post", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" }
+}
