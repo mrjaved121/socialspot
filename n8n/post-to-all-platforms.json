@@ -1,25 +1,156 @@
 {
-  "name": "SocialSpot - Post video to all platforms",
+  "name": "SocialSpot - Post or schedule a video on all platforms",
   "nodes": [
     {
       "parameters": {
         "formTitle": "Post to all platforms",
-        "formDescription": "Upload one portrait video and a caption. It goes to TikTok, Instagram, Facebook and YouTube together.",
+        "formDescription": "One portrait video + caption goes to TikTok, Instagram, Facebook and YouTube. Post now, pick a date and time, or put it in the next free queue slot.",
         "formFields": {
           "values": [
-            { "fieldLabel": "Video", "fieldType": "file", "multipleFiles": false, "acceptFileTypes": ".mp4,.mov", "requiredField": true },
-            { "fieldLabel": "Caption", "fieldType": "textarea", "requiredField": true },
-            { "fieldLabel": "YouTube title", "placeholder": "Optional - max 100 letters" }
+            {
+              "fieldLabel": "Video",
+              "fieldType": "file",
+              "multipleFiles": false,
+              "acceptFileTypes": ".mp4,.mov",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Caption",
+              "fieldType": "textarea",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "YouTube title",
+              "placeholder": "Optional - max 100 letters"
+            },
+            {
+              "fieldLabel": "When",
+              "fieldType": "dropdown",
+              "requiredField": true,
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Post now"
+                  },
+                  {
+                    "option": "Schedule"
+                  },
+                  {
+                    "option": "Next free queue slot"
+                  }
+                ]
+              }
+            },
+            {
+              "fieldLabel": "Date",
+              "fieldType": "date"
+            },
+            {
+              "fieldLabel": "Time",
+              "placeholder": "24-hour, e.g. 19:00 (only for Schedule)"
+            }
           ]
         },
         "options": {}
       },
-      "id": "a1f0c6c2-1111-4c1a-9a01-000000000001",
+      "id": "b67eb9fb-7155-4d3b-bcdf-950b9aa243ef",
       "name": "Upload form",
       "type": "n8n-nodes-base.formTrigger",
       "typeVersion": 2.2,
-      "position": [0, 0],
+      "position": [
+        0,
+        160
+      ],
       "webhookId": "socialspot-post-form"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "2cb05aac-5702-4ac5-ada7-9a2f63116225",
+                    "leftValue": "={{ $json.When }}",
+                    "rightValue": "Post now",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Now"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "4de7fa41-39eb-402b-b106-af0c5668ec39",
+                    "leftValue": "={{ $json.When }}",
+                    "rightValue": "Schedule",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Schedule"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "13ba2b31-797b-4756-89ec-98acd05aef27",
+                    "leftValue": "={{ $json.When }}",
+                    "rightValue": "Next free queue slot",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Queue"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "d76c2699-144d-42cb-a252-9a520ec92d73",
+      "name": "Now, schedule or queue?",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        280,
+        160
+      ]
     },
     {
       "parameters": {
@@ -31,28 +162,234 @@
         "contentType": "multipart-form-data",
         "bodyParameters": {
           "parameters": [
-            { "parameterType": "formBinaryData", "name": "video", "inputDataFieldName": "Video" },
-            { "name": "user", "value": "mrjayofficials" },
-            { "name": "platform[]", "value": "tiktok" },
-            { "name": "platform[]", "value": "instagram" },
-            { "name": "platform[]", "value": "facebook" },
-            { "name": "platform[]", "value": "youtube" },
-            { "name": "title", "value": "={{ $json.Caption }}" },
-            { "name": "youtube_title", "value": "={{ $json['YouTube title'] || $json.Caption.split('\\n')[0].slice(0, 100) }}" },
-            { "name": "youtube_description", "value": "={{ $json.Caption }}" }
+            {
+              "parameterType": "formBinaryData",
+              "name": "video",
+              "inputDataFieldName": "Video"
+            },
+            {
+              "name": "user",
+              "value": "mrjayofficials"
+            },
+            {
+              "name": "platform[]",
+              "value": "tiktok"
+            },
+            {
+              "name": "platform[]",
+              "value": "instagram"
+            },
+            {
+              "name": "platform[]",
+              "value": "facebook"
+            },
+            {
+              "name": "platform[]",
+              "value": "youtube"
+            },
+            {
+              "name": "title",
+              "value": "={{ $('Upload form').item.json.Caption }}"
+            },
+            {
+              "name": "youtube_title",
+              "value": "={{ $('Upload form').item.json['YouTube title'] || $('Upload form').item.json.Caption.split('\\n')[0].slice(0, 100) }}"
+            },
+            {
+              "name": "youtube_description",
+              "value": "={{ $('Upload form').item.json.Caption }}"
+            }
           ]
         },
-        "options": { "timeout": 600000 }
+        "options": {
+          "timeout": 600000
+        }
       },
-      "id": "a1f0c6c2-1111-4c1a-9a01-000000000002",
-      "name": "Send to Upload-Post",
+      "id": "702613f4-8a33-447b-8ded-d8cee0626c4f",
+      "name": "Post now",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [320, 0]
+      "position": [
+        560,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.upload-post.com/api/upload",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "video",
+              "inputDataFieldName": "Video"
+            },
+            {
+              "name": "user",
+              "value": "mrjayofficials"
+            },
+            {
+              "name": "platform[]",
+              "value": "tiktok"
+            },
+            {
+              "name": "platform[]",
+              "value": "instagram"
+            },
+            {
+              "name": "platform[]",
+              "value": "facebook"
+            },
+            {
+              "name": "platform[]",
+              "value": "youtube"
+            },
+            {
+              "name": "title",
+              "value": "={{ $('Upload form').item.json.Caption }}"
+            },
+            {
+              "name": "youtube_title",
+              "value": "={{ $('Upload form').item.json['YouTube title'] || $('Upload form').item.json.Caption.split('\\n')[0].slice(0, 100) }}"
+            },
+            {
+              "name": "youtube_description",
+              "value": "={{ $('Upload form').item.json.Caption }}"
+            },
+            {
+              "name": "scheduled_date",
+              "value": "={{ $('Upload form').item.json.Date + 'T' + ($('Upload form').item.json.Time || '19:00').trim() + ':00' }}"
+            },
+            {
+              "name": "timezone",
+              "value": "Asia/Karachi"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 600000
+        }
+      },
+      "id": "87ff2f2e-228b-4a81-b921-65c6263fa696",
+      "name": "Schedule post",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        560,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.upload-post.com/api/upload",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "video",
+              "inputDataFieldName": "Video"
+            },
+            {
+              "name": "user",
+              "value": "mrjayofficials"
+            },
+            {
+              "name": "platform[]",
+              "value": "tiktok"
+            },
+            {
+              "name": "platform[]",
+              "value": "instagram"
+            },
+            {
+              "name": "platform[]",
+              "value": "facebook"
+            },
+            {
+              "name": "platform[]",
+              "value": "youtube"
+            },
+            {
+              "name": "title",
+              "value": "={{ $('Upload form').item.json.Caption }}"
+            },
+            {
+              "name": "youtube_title",
+              "value": "={{ $('Upload form').item.json['YouTube title'] || $('Upload form').item.json.Caption.split('\\n')[0].slice(0, 100) }}"
+            },
+            {
+              "name": "youtube_description",
+              "value": "={{ $('Upload form').item.json.Caption }}"
+            },
+            {
+              "name": "add_to_queue",
+              "value": "true"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 600000
+        }
+      },
+      "id": "e61f7834-7632-4743-93ef-bd081b16f8b2",
+      "name": "Add to queue",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        560,
+        320
+      ]
     }
   ],
   "connections": {
-    "Upload form": { "main": [[{ "node": "Send to Upload-Post", "type": "main", "index": 0 }]] }
+    "Upload form": {
+      "main": [
+        [
+          {
+            "node": "Now, schedule or queue?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Now, schedule or queue?": {
+      "main": [
+        [
+          {
+            "node": "Post now",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Schedule post",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add to queue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
-  "settings": { "executionOrder": "v1" }
+  "settings": {
+    "executionOrder": "v1"
+  }
 }
